@@ -1,3 +1,4 @@
+# Not using for this excersise
 from kafka  import KafkaProducer
 import random
 import pickle

@@ -19,41 +19,18 @@ def get_data_from_kafka(**kwargs):
     consumer = KafkaConsumer(
         kwargs['topic'],                                # specify topic to consume from
         bootstrap_servers=[kwargs['client']],
-        consumer_timeout_ms=3000,                       # break connection if the consumer has fetched anything for 3 secs (e.g. in case of an empty topic)
         auto_offset_reset='earliest',                   # automatically reset the offset to the earliest offset (should the current offset be deleted or anything)
         enable_auto_commit=True,                        # offsets are committed automatically by the consumer
-        #group_id='my-group',
-        value_deserializer=lambda x: loads(x.decode('utf-8')))
+        )
 
 
     logging.info('Consumer constructed')
 
     try:
 
-        xs = []
-        ys = []
-
-        for message in consumer:                            # loop over messages
-
-            logging.info( "Offset: ", message.offset)
-            message = message.value
-            x, y = decode_json(message)            # decode JSON
-
-            xs.append(x)
-            ys.append(y)
-
-            logging.info('Image retrieved from topic')
-
-        xs = np.array(xs).reshape(-1, 28, 28, 1)            # put Xs in the right shape for our CNN
-        ys = np.array(ys).reshape(-1)                       # put ys in the right shape for our CNN
-
-        new_samples = [xs, ys]
-
-        pickle.dump(new_samples, open(os.getcwd()+kwargs['path_new_data']+str(time.strftime("%Y%m%d_%H%M"))+"_new_samples.p", "wb"))     # write data
-
-        logging.info(str(xs.shape[0])+' new samples retrieved')
-
-        consumer.close()
+        for message in consumer:
+            message = message.value.decode('utf-8')
+            os.system(f"echo {message} >> kafka_log1.csv")
 
     except Exception as e:
         print(e)

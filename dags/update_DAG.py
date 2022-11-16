@@ -14,7 +14,6 @@ TOPIC = 'TopicA'
 PATH_NEW_DATA = '/data/to_use_for_model_update/'
 PATH_USED_DATA = '/data/used_for_model_update/'
 PATH_TEST_SET = '/data/test_set.p'
-
 PATH_INITIAL_MODEL = '/models/initial_model'
 PATH_CURRENT_MODEL = '/models/current_model/'
 

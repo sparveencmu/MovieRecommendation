@@ -2,12 +2,27 @@ version: '3.7'
 services:
 # create postgres container
     postgres:                                           
-        image: postgres:9.6
+        image: postgres:14.5
+        #restart: always
+        ports:
+            - 5432:5432
+        stop_signal: SIGINT  
         container_name: postgres_container
         environment:
-            - POSTGRES_USER=airflow
-            - POSTGRES_PASSWORD=airflow
-            - POSTGRES_DB=airflow
+            POSTGRES_USER: airflow
+            POSTGRES_PASSWORD : airflow
+            POSTGRES_DB: airflow
+            PGUSER: "postgres"
+        healthcheck:
+            test: [ "CMD-SHELL", "pg_isready -U airflow airflow" ]
+            interval: 5s
+            timeout: 5s
+            retries: 15
+        # volumes:
+        #   # - postgres:/var/lib/postgresql/data:z
+        #   - ./docker/postgres/postgresql.auto.conf:/var/lib/postgresql/data/postgresql.auto.conf
+   
+        # command: postgres -c 'airflow initdb'
 # create airflow container
 # construct the container along the Dockerfile in this folder
     airflow:                                            
@@ -15,7 +30,8 @@ services:
         container_name: airflow_container
         restart: always
         depends_on:
-            - postgres
+            postgres:
+                condition: service_healthy
         environment:
             - LOAD_EX=n
             - EXECUTOR=Local
@@ -51,9 +67,9 @@ services:
     #         KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092  # Kafka sends the value of this variable to clients during their connection. After receiving that value, the clients use it for sending/consuming records to/from the Kafka broker.y connect to it.
     #     volumes:
     #         - /var/run/docker.sock:/var/run/docker.sock
-    mlflow:                                             # create a MLFlow container
-        build: './mlflow_docker'                        # construct the container along the Dockerfile in this folder
-        container_name: mlflow_container
-        ports:
-            - "5000:5000"                               # expose port
-        command: 'mlflow server --backend-store-uri ./mlflow --host 0.0.0.0 --port 5000'
+    # mlflow:                                             # create a MLFlow container
+    #     build: './mlflow_docker'                        # construct the container along the Dockerfile in this folder
+    #     container_name: mlflow_container
+    #     ports:
+    #         - "5000:5000"                               # expose port
+    #     command: 'mlflow server --backend-store-uri ./mlflow --host 0.0.0.0 --port 5000'
